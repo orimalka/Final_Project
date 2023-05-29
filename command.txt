@@ -1,1 +1,1 @@
-python segment/predict.py --weights yolov7-seg.pt --source "orange.jpg" --classes 49 --hide-labels --hide-conf --save-crop
+python segment/predict.py --weights yolov7-seg.pt --source "orange5.mov" --classes 49 --hide-labels --hide-conf --save-seg

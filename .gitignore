@@ -2,3 +2,4 @@
 *.pyc
 yolov7-seg.pt
 runs
+orange5.mov
