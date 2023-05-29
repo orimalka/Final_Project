@@ -215,5 +215,7 @@ def plot_masks_cut(img, masks, colors, alpha=0.5):
     img_gpu = img_gpu.flip(dims=[0])  # filp channel for opencv
     img_gpu = img_gpu.permute(1, 2, 0).contiguous()
     # [h, w, 3]
-    img_gpu = img_gpu * inv_alph_masks.prod(dim=0) + masks_color_summand
-    return (img_gpu * 255).byte().cpu().numpy()
+    # img_gpu = img_gpu * inv_alph_masks.prod(dim=0) + masks_color_summand
+    and_mask = torch.logical_and(img_gpu, masks_color_summand)
+    cut_img = img_gpu*and_mask
+    return (cut_img * 255).byte().cpu().numpy()
