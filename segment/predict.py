@@ -26,7 +26,7 @@ from utils.general import (LOGGER, Profile, check_file, check_img_size, check_im
                            increment_path, non_max_suppression,scale_segments, print_args, scale_coords, strip_optimizer, xyxy2xywh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.segment.general import process_mask, scale_masks, masks2segments
-from utils.segment.plots import plot_masks
+from utils.segment.plots import plot_masks, plot_masks_cut
 from utils.torch_utils import select_device, smart_inference_mode
 
 
@@ -159,6 +159,7 @@ def run(
                 # Mask plotting ----------------------------------------------------------------------------------------
                 mcolors = [colors(int(6), True) for cls in det[:, 5]]
                 im_masks = plot_masks(im[i], masks, mcolors)  # image with masks shape(imh,imw,3)
+                cut_masks = plot_masks_cut(im[i], masks, mcolors)
                 annotator.im = scale_masks(im.shape[2:], im_masks, im0.shape)  # scale to original h, w
                 # Mask plotting ----------------------------------------------------------------------------------------
 
