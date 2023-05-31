@@ -24,10 +24,12 @@ from models.common import DetectMultiBackend
 from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadStreams
 from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
                            increment_path, non_max_suppression,scale_segments, print_args, scale_coords, strip_optimizer, xyxy2xywh)
-from utils.plots import Annotator, colors, save_one_box
+from utils.plots import Annotator, colors, save_one_box, cut_detection
 from utils.segment.general import process_mask, scale_masks, masks2segments
 from utils.segment.plots import plot_masks, plot_masks_cut
 from utils.torch_utils import select_device, smart_inference_mode
+
+from ripeness import sort_detection
 
 
 @smart_inference_mode()
@@ -45,6 +47,7 @@ def run(
         save_conf=False,  # save confidences in --save-txt labels
         save_crop=False,  # save cropped prediction boxes
         save_seg=False, # save segmented images
+        sort_seg=False, # run ripeness prediction on detections 
         nosave=False,  # do not save images/videos
         classes=None,  # filter by class: --class 0, or --class 0 2 3
         agnostic_nms=False,  # class-agnostic NMS
@@ -191,22 +194,28 @@ def run(
             
                 # Write results
                 for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
-                    frame_number +=1
                     if save_txt:  # Write to file
                         segj = segments[j].reshape(-1)  # (n,2) to (n*2)
                         line = (cls, *segj, conf) if save_conf else (cls, *segj)  # label format
                         with open(f'{txt_path}.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
-                    if save_img or save_crop or view_img:  # Add bbox to image
+                    if save_img or save_crop or view_img or save_seg:  # Add bbox to image
                         c = int(cls)  # integer class
-                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
+                        if sort_seg:
+                            seg_im = cut_detection(xyxy, cut_image, BGR=True)
+                            ripeness, box_color, confidence = sort_detection(seg_im)
+                            label = ripeness + str(confidence)
+                            annotator.box_label(xyxy, label, color=box_color)
+                        else:
+                            label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                            annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
                     if save_seg:
                         if (frame_number % 30) == 0:
                             save_one_box(xyxy, cut_image, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+                frame_number +=1
 
             # Stream results
             im0 = annotator.result()
@@ -265,6 +274,7 @@ def parse_opt():
     parser.add_argument('--save-conf', action='store_true', help='save confidences in --save-txt labels')
     parser.add_argument('--save-crop', action='store_true', help='save cropped prediction boxes')
     parser.add_argument('--save-seg', action='store_true', help='save segmented prediction')
+    parser.add_argument('--sort-seg', action='store_true', help='run predict for labels')
     parser.add_argument('--nosave', action='store_true', help='do not save images/videos')
     parser.add_argument('--classes', nargs='+', type=int, help='filter by class: --classes 0, or --classes 0 2 3')
     parser.add_argument('--agnostic-nms', action='store_true', help='class-agnostic NMS')
