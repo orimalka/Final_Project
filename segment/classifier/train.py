@@ -9,7 +9,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 import numpy as np
-from model import CNN
+from cnn_model import CNN
 # functions to show an image
 
 
@@ -21,9 +21,9 @@ def imshow(img):
 
 
 # Hyper parameters
-num_epochs = 20
+num_epochs = 5
 batchsize = 4
-lr = 0.001
+lr = 0.002
 
 EPOCHS = 2
 BATCH_SIZE = 5
@@ -67,8 +67,8 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if (i+1)%100 == 0:
-            print('Epoch [%d/%d], Iter [%d/%d] Loss: %.4f' %
-                  (epoch+1,num_epochs,i+1,len(train_data)//batchsize,loss.data[0]))
+            print('Epoch [%d/%d]' %
+                  (epoch+1,num_epochs))
 
 # Test the Model
 cnn.eval()  # Change model to 'eval' mode (BN uses moving mean/var)
