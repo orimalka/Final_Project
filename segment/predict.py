@@ -29,7 +29,7 @@ from utils.segment.general import process_mask, scale_masks, masks2segments
 from utils.segment.plots import plot_masks, plot_masks_cut
 from utils.torch_utils import select_device, smart_inference_mode
 
-from ripeness import sort_detection
+from classifier.ripeness import Ripeness
 
 
 @smart_inference_mode()
@@ -74,6 +74,11 @@ def run(
                         min_hits=sort_min_hits,
                         iou_threshold=sort_iou_thresh) 
     #......................... 
+
+    #.... Initialize ripeness model .... 
+    if sort_seg:
+        evaluator = Ripeness()
+    #.........................
 
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -204,7 +209,7 @@ def run(
                         c = int(cls)  # integer class
                         if sort_seg:
                             seg_im = cut_detection(xyxy, cut_image, BGR=True)
-                            ripeness, box_color, confidence = sort_detection(seg_im)
+                            ripeness, box_color, confidence = evaluator.predict(seg_im)
                             label = ripeness + str(confidence)
                             annotator.box_label(xyxy, label, color=box_color)
                         else:

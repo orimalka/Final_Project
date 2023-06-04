@@ -3,3 +3,6 @@
 yolov7-seg.pt
 runs
 orange5.mov
+segment/classifier/train/
+segment/classifier/test/
+segment/classifier/cnn.pkl
