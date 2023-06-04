@@ -18,6 +18,8 @@ class Ripeness():
         self.cnn = CNN()
         self.cnn.load_state_dict(torch.load('segment/classifier/cnn.pkl'))
         self.cnn.eval()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.cnn.to(self.device)
         self.sm = torch.nn.Softmax(dim=1)
         self.transform_img = transforms.Compose(
     [transforms.ToPILImage(),
@@ -30,6 +32,7 @@ class Ripeness():
         image_tensor = self.transform_img(image).float()
         image_tensor = image_tensor.unsqueeze_(0)
         input = Variable(image_tensor)
+        input = input.to(self.device)
         output = self.cnn(input)
         _, pred = torch.max(output.data, 1)
         cer = torch.max(self.sm(output))
