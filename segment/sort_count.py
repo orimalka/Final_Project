@@ -136,6 +136,7 @@ class KalmanBoxTracker(object):
         self.centroids =[]
         (cX,cY) =self.calculate_centroid(bbox[0:4])
         self.centroids.append((cX, cY))
+        self.bbox = bbox
 
     def calculate_centroid(self,bbox):
         cX = int((bbox[0] + bbox[2]) / 2.0)
@@ -154,6 +155,7 @@ class KalmanBoxTracker(object):
         self.hit_streak += 1
         self.kf.update(convert_bbox_to_z(bbox))
         self.detclass = bbox[5]
+        self.bbox = bbox
         (cX, cY) = self.calculate_centroid(bbox[0:4])
         self.centroids[-1]= (cX, cY)
 
@@ -250,6 +252,8 @@ class Sort(object):
         self.iou_threshold = iou_threshold
         self.trackers = []
         self.frame_count = 0
+        self.added_trackers = []
+
     def update(self, dets= np.empty((0,6))):
         """
         Parameters:
@@ -284,15 +288,16 @@ class Sort(object):
         # Create and initialize new trackers for unmatched detections
         for i in unmatched_dets:
             trk = KalmanBoxTracker(np.hstack((dets[i,:], np.array([0]))))
-            new_tracks.append(dets[i,0])
             #trk = KalmanBoxTracker(np.hstack(dets[i,:])
             self.trackers.append(trk)
-        
         i = len(self.trackers)
         for trk in reversed(self.trackers):
             d = trk.get_state()[0]
             if (trk.time_since_update < 1) and (trk.hit_streak >= self.min_hits or self.frame_count <= self.min_hits):
                 ret.append(np.concatenate((d, [trk.id+1])).reshape(1,-1)) #+1'd because MOT benchmark requires positive value
+            if trk.age == 5:
+                new_tracks.append(trk.bbox[0])
+                # self.added_trackers.append(trk.id)
             i -= 1
             #remove dead tracklet
             if(trk.time_since_update >self.max_age):

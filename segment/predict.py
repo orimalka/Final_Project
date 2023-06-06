@@ -200,7 +200,6 @@ def run(
                             identities = tracked_dets[:, 8]
                             categories = tracked_dets[:, 4]
                             annotator.draw_id(bbox_xyxy, identities, categories, names)
-            
                 # Write results
                 for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
                     #print(xyxy[0].cpu().detach().numpy())
@@ -233,7 +232,7 @@ def run(
                         if (frame_number % 30) == 0:
                             save_one_box(xyxy, cut_image, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
                 frame_number +=1
-                if trk and sort_seg:
+                if trk and sort_seg and ripe_cnt!=0:
                     annotator.text((0,0),"ripe: "+str(ripe_cnt)+" unripe: "+str(unripe_cnt)+" ripe percentage: "+str(floor((ripe_cnt/(ripe_cnt+unripe_cnt))*100)))
 
             # Stream results
