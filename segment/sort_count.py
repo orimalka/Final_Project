@@ -262,7 +262,7 @@ class Sort(object):
         NOTE: The number of objects returned may differ from the number of objects provided.
         """
         self.frame_count += 1
-        
+        new_tracks = []
         # Get predicted locations from existing trackers
         trks = np.zeros((len(self.trackers), 6))
         to_del = []
@@ -284,6 +284,7 @@ class Sort(object):
         # Create and initialize new trackers for unmatched detections
         for i in unmatched_dets:
             trk = KalmanBoxTracker(np.hstack((dets[i,:], np.array([0]))))
+            new_tracks.append(dets[i,0])
             #trk = KalmanBoxTracker(np.hstack(dets[i,:])
             self.trackers.append(trk)
         
@@ -297,7 +298,7 @@ class Sort(object):
             if(trk.time_since_update >self.max_age):
                 self.trackers.pop(i)
         if(len(ret) > 0):
-            return np.concatenate(ret)
+            return np.concatenate(ret), new_tracks
         return np.empty((0,6))
 
     def getTrackers(self,):

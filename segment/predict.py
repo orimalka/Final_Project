@@ -12,7 +12,7 @@ import skimage
 from sort_count import *
 import numpy as np
 #...........................
-
+from math import floor
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -63,6 +63,7 @@ def run(
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
         trk = False,
+        trk_clr = False,
 ):  
 
     #.... Initialize SORT .... 
@@ -77,6 +78,8 @@ def run(
 
     #.... Initialize ripeness model .... 
     if sort_seg:
+        ripe_cnt = 0
+        unripe_cnt = 0
         evaluator = Ripeness()
     #.........................
 
@@ -185,20 +188,22 @@ def run(
                                         np.array([x1, y1, x2, y2, 
                                                     conf, detclass])))
 
-                    tracked_dets = sort_tracker.update(dets_to_sort)
+                    tracked_dets,new_dets_x1 = sort_tracker.update(dets_to_sort)
                     tracks =sort_tracker.getTrackers()
 
-                    for track in tracks:
-                        annotator.draw_trk(line_thickness,track)
+                    if not trk_clr:
+                        for track in tracks:
+                            annotator.draw_trk(line_thickness,track)
 
-                    if len(tracked_dets)>0:
-                        bbox_xyxy = tracked_dets[:,:4]
-                        identities = tracked_dets[:, 8]
-                        categories = tracked_dets[:, 4]
-                        annotator.draw_id(bbox_xyxy, identities, categories, names)
+                        if len(tracked_dets)>0:
+                            bbox_xyxy = tracked_dets[:,:4]
+                            identities = tracked_dets[:, 8]
+                            categories = tracked_dets[:, 4]
+                            annotator.draw_id(bbox_xyxy, identities, categories, names)
             
                 # Write results
                 for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
+                    #print(xyxy[0].cpu().detach().numpy())
                     if save_txt:  # Write to file
                         segj = segments[j].reshape(-1)  # (n,2) to (n*2)
                         line = (cls, *segj, conf) if save_conf else (cls, *segj)  # label format
@@ -212,6 +217,13 @@ def run(
                             ripeness, box_color, confidence = evaluator.predict(seg_im)
                             label = ripeness + str(confidence)
                             annotator.box_label(xyxy, label, color=box_color)
+                            if trk:
+                                for new_detection in new_dets_x1:
+                                    if xyxy[0].cpu().detach().numpy() == new_detection:
+                                        if ripeness == "ripe":
+                                            ripe_cnt+=1
+                                        else:
+                                            unripe_cnt+=1
                         else:
                             label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                             annotator.box_label(xyxy, label, color=colors(c, True))
@@ -221,6 +233,8 @@ def run(
                         if (frame_number % 30) == 0:
                             save_one_box(xyxy, cut_image, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
                 frame_number +=1
+                if trk and sort_seg:
+                    annotator.text((0,0),"ripe: "+str(ripe_cnt)+" unripe: "+str(unripe_cnt)+" ripe percentage: "+str(floor((ripe_cnt/(ripe_cnt+unripe_cnt))*100)))
 
             # Stream results
             im0 = annotator.result()
@@ -295,6 +309,7 @@ def parse_opt():
     parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
     parser.add_argument('--trk', action='store_true', help='Apply Sort Tracking')
+    parser.add_argument('--trk-clr', action='store_true', help='Apply Sort Tracking')
     opt = parser.parse_args()
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))

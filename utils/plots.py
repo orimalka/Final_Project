@@ -147,7 +147,11 @@ class Annotator:
         if anchor == 'bottom':  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
-        self.draw.text(xy, text, fill=txt_color, font=self.font)
+        if self.pil:
+            self.draw.text(xy, text, fill=txt_color, font=self.font)
+        else:
+            xy = (xy[0]+5,xy[1]+25)
+            cv2.putText(self.im, text, xy,cv2.FONT_HERSHEY_SIMPLEX, 1, txt_color, 2)
 
     def fromarray(self, im):
         # Update self.im from a numpy array
