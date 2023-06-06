@@ -115,6 +115,7 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
+    frame_number = 0
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
             im = torch.from_numpy(im).to(device)
@@ -137,7 +138,6 @@ def run(
         # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
 
         # Process predictions
-        frame_number = 0
         for i, det in enumerate(pred):  # per image
             seen += 1
             if webcam:  # batch_size >= 1
@@ -223,6 +223,11 @@ def run(
                                             ripe_cnt+=1
                                         else:
                                             unripe_cnt+=1
+                            if frame_number == 0: #just count detections if it's a picture
+                                if ripeness == "ripe":
+                                    ripe_cnt+=1
+                                else:
+                                    unripe_cnt+=1
                         else:
                             label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                             annotator.box_label(xyxy, label, color=colors(c, True))
@@ -231,9 +236,12 @@ def run(
                     if save_seg:
                         if (frame_number % 30) == 0:
                             save_one_box(xyxy, cut_image, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-                frame_number +=1
                 if trk and sort_seg and ripe_cnt!=0:
                     annotator.text((0,0),"ripe: "+str(ripe_cnt)+" unripe: "+str(unripe_cnt)+" ripe percentage: "+str(floor((ripe_cnt/(ripe_cnt+unripe_cnt))*100)))
+                if frame_number == 0: # clear picture detections for video
+                    ripe_cnt = 0
+                    unripe_cnt = 0
+                frame_number +=1   
 
             # Stream results
             im0 = annotator.result()
