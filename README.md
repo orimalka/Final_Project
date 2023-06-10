@@ -35,6 +35,8 @@ Additionally you can specify a custom yolo segmentation resolution, save segment
 
 ### Example result
 <img src="https://raw.githubusercontent.com/orimalka/Final_Project/main/example_res.jpg" width=685 height=384>
+- Video run result
+https://www.youtube.com/watch?v=xJpi37b1GIw
 
 ## References
 - https://github.com/RizwanMunawar/yolov7-segmentation
