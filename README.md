@@ -27,7 +27,7 @@ cd gui
 python run_gui.py
 ```
 - Select the wanted file (video/image/stream) using the Browse button and click Run Prediction
-
+<img src="https://raw.githubusercontent.com/orimalka/Final_Project/main/gui_pic.png" width=552 height=293>
 Additionally you can specify a custom yolo segmentation resolution, save segmented images in a crop folder next to the output file, and show the SORT tracking traces.
 
 
