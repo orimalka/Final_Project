@@ -34,11 +34,7 @@ Additionally you can specify a custom yolo segmentation resolution, save segment
 - Output file will be created in the working directory with name <b>Final_Project/segmentation/runs/predict-seg/exp#/"original-video-name.mp4"</b>
 
 ### Example result
-
-
-
-
-
+<img src="https://raw.githubusercontent.com/orimalka/Final_Project/main/example_res.jpg" width=685 height=384>
 
 ## References
 - https://github.com/RizwanMunawar/yolov7-segmentation
