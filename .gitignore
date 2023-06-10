@@ -8,3 +8,4 @@ segment/classifier/test/
 segment/classifier/cnn.pkl
 segment/classifier/cnn - Copy.pkl
 Orange6.mp4
+yolov5s-seg.pt

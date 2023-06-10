@@ -44,8 +44,6 @@ class Ripeness():
             classification = "unripe"
             color = (0,128,0)            
         percentage = floor(cer.item()*100)
-        if percentage == 100:
-            percentage = percentage - random.randint(2,7)
 
         
         #index = output.data.cpu().numpy().argmax()
